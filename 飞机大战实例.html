@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <title>飞机大战</title>
+        <style>
+            #did{
+                width:500px;height:500px;
+                background:url("./images/bg2.png") no-repeat 0px -1036px;
+                position:relative;overflow:hidden;}
+            #gid{position:absolute;top:350px;left:100px;}
+            #p0,#p1,#p2,#p3,#p4,#e1,#e2,#e3,#boom{position:absolute;}
+        </style>
+    </head>
+    <body>
+        <h2>JavaScript实例:飞机大战</h2>
+        <div id="did">
+            <img id="p0" src="./images/222.png" style="display:none;"/>
+            <img id="p1" src="./images/222.png" style="display:none;"/>
+            <img id="p2" src="./images/222.png" style="display:none;"/>
+            <img id="p3" src="./images/222.png" style="display:none;"/>
+            <img id="p4" src="./images/222.png" style="display:none;"/>
+            
+            <img id="e1" src="./images/e1.png" style="display:none;"/>
+            <img id="e2" src="./images/e2.png" style="display:none;"/>
+            <img id="e3" src="./images/e3.png" style="display:none;"/>
+           
+            <img id="boom" src="./images/boom.gif" style="display:none;"/>
+        
+           <img id="gid" src="./images/sicong.png"/>
+        </div>
+        <script type="text/javascript">
+            var btop=-1036;
+            var m=0,b=0;
+            var did = document.getElementById("did");
+            var gid = document.getElementById("gid");
+            var boom = document.getElementById("boom");
+            window.document.onkeydown = function(ent){
+                //获取兼容的事件对象
+                var event = ent || window.event;
+                //alert(event.keyCode);
+                //根据键盘值执行对应操作
+                switch(event.keyCode){
+                    case 37: //左方向键
+                        gid.style.left = Math.max(0,gid.offsetLeft-5)+"px";
+                        break;
+                    case 38: //上方向键
+                        gid.style.top = Math.max(0,gid.offsetTop-5)+"px";
+                        break;
+                    case 39: //右方向键
+                        gid.style.left = Math.min(450,gid.offsetLeft+5)+"px";
+                        break;
+                    case 40: //下方向键
+                        gid.style.top = Math.min(440,gid.offsetTop+5)+"px";
+                        break;
+                    case 32: //空格键
+                        shoot(gid.offsetLeft+51,gid.offsetTop); //发射炮弹
+                        break;
+                }
+            }
+            
+            //发射炮弹方法
+            function shoot(x,y){
+                //遍历所有炮弹
+                for(var i=0;i<5;i++){
+                    var p = document.getElementById("p"+i);
+                    //判断炮弹是否可用
+                    if(p.style.display=="none"){
+                        p.style.top = y+"px";
+                        p.style.left = x+"px";
+                        p.style.display = "block";
+                        return;
+                    }
+                }
+            }
+            
+            //碰撞检测函数
+            function doCheckP(p,e){
+                //获取检测坐标
+                var x1 = e.offsetLeft+3;
+                var x2 = e.offsetLeft+93;
+                var y1 = e.offsetTop+35;
+                var y2 = e.offsetTop+59;
+                var x = p.offsetLeft+1;
+                var y = p.offsetTop;
+                //判断是否有像素重叠
+                if(x>x1 && x<x2 && y>y1 && y<y2){
+                     return true;
+                }
+                return false;
+            }
+            
+            //游戏主线程
+            function running(){
+                //负责移动可见炮弹
+                for(var i=0;i<5;i++){
+                    var p = document.getElementById("p"+i);
+                    //判断炮弹是否可用
+                    if(p.style.display=="block"){
+                        p.style.top = p.offsetTop-5+"px";
+                        //回收出了屏幕的炮弹
+                        if(p.offsetTop<-10){
+                            p.style.display = "none";
+                        }
+                        
+                        //碰撞检测
+                        //遍历所有敌机
+                        for(var j=1;j<=3;j++){
+                            var e = document.getElementById("e"+j);
+                            //判断是否可见
+                            if(e.style.display=="block"){
+                                if(doCheckP(p,e)){
+                                    
+                                    //设置爆炸位置
+                                    boom.style.top = p.offsetTop-170+"px";
+                                    boom.style.left = p.offsetLeft-200+"px";
+                                    boom.style.display ="block";
+                                    b=0;
+                                    
+                                    //隐藏敌机和炮弹
+                                    p.style.display = "none";
+                                    e.style.display = "none";
+                                }
+                            }
+                        }
+                    }
+                }
+               
+                //随机设置出现敌机
+                var n = Math.ceil(Math.random()*10000)%20;
+                if(n==5){
+                    for(var i=1;i<=3;i++){
+                        var e = document.getElementById("e"+i);
+                        //判断而是否可用
+                        if(e.style.display=="none"){
+                            e.style.display="block";
+                            e.style.top=-85+"px";
+                            e.style.left=Math.ceil(Math.random()*10000)%400+"px";
+                            break;
+                        }
+                    }
+                }
+                
+                //负责移动可见飞机
+                for(var i=1;i<=3;i++){
+                    var e = document.getElementById("e"+i);
+                    //判断而是否可用
+                    if(e.style.display=="block"){
+                        e.style.top = e.offsetTop+4+"px";
+                        //判断是否出界
+                        if(e.offsetTop>500){
+                            e.style.display = "none";
+                        }
+                    }
+                }
+                
+                //控制爆炸时间
+                if(b>=0){
+                    b++;
+                }
+                if(b>10){
+                     boom.style.display ="none";
+                     b=-1;
+                }
+                
+                //负责无缝滚动背景图片
+                m+=2;
+                did.style.backgroundPosition="0px "+(btop+m)+"px";
+                if(m>768){
+                    m=0;
+                }
+                
+                
+                setTimeout("running()",33);
+            }
+            
+            running();
+        </script>
+    </body>
+</html>
